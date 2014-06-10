@@ -43,6 +43,9 @@ colNames.std = gsub(')', '', colNames.std, fixed = TRUE)
 colNames.std = gsub(',', '.', colNames.std, fixed = TRUE)
 colNames.std = gsub('-', '.', colNames.std, fixed = TRUE)
 colNames.std = make.names(colNames.std, unique = TRUE, allow_ = FALSE)
+# Notice triples in some names which are forced to be unique
+# Likely X,Y,Z axes, but cannot verify independently without confirmation from data collector
+# Analysis will not be hindered; will leave names as-is
 names(har.all) = c(colNames.std, 'subjectID', 'activityID')
 #
 # Extracts only the measurements on the mean and standard deviation for each measurement
@@ -55,3 +58,42 @@ tail(har.sel)
 #
 # Creates a second, independent tidy data set with the average of each variable for each activity and each subject
 # Need: subjectID, activityID, variableName, averageValue
+library(dplyr)
+har.tidy =
+    har.sel %>%
+mutate(variableName = 'paste(FlightNum, TailNum)') %>%
+group_by(subjectID, activityID, variableName) %>%
+summarise(
+    tBodyAcc.mean.X = mean(tBodyAcc.mean.X, na.rm = TRUE),
+    tBodyAcc.mean.Y = mean(tBodyAcc.mean.Y, na.rm = TRUE),
+    tBodyAcc.mean.Z = mean(tBodyAcc.mean.Z, na.rm = TRUE)
+)
+#
+groupMeans = function(colName = 'tBodyAcc.mean.X') {
+    har.sel %>%
+#        mutate(variableName = colName) %>%
+        group_by(subjectID, activityID) %>%
+        summarise(
+#            mean(list(as.name(colName)), na.rm = TRUE)
+            mean(colName, na.rm = TRUE)
+        )
+}
+groupMeans = function(x, colName = 'tBodyAcc.mean.X', colNumber = 1) {
+    summarise(x, meanValue = mean(colName, na.rm = TRUE))
+}
+t1 = groupMeans(har.sel)
+# http://stackoverflow.com/questions/21295936/can-dplyr-summarise-over-several-variables-without-listing-each-one
+dg = group_by(har.sel, subjectID, activityID)
+cols = names(har.sel)[1:66]
+dots <- sapply(cols ,function(x) substitute(mean(x), list(x=as.name(x))))
+do.call(summarise, c(list(.data=dg), dots))
+# Test code
+# summary(har.sel[har.sel$subjectID == '9' & har.sel$activityID == 'STANDING',c(1:3)])
+(df=dput(structure(list(sex = structure(c(1L, 1L, 2L, 2L), .Label = c("boy", 
+                                                                      "girl"), class = "factor"), age = c(52L, 58L, 40L, 62L), bmi = c(25L, 
+                                                                                                                                       23L, 30L, 26L), chol = c(187L, 220L, 190L, 204L)), .Names = c("sex", 
+                                                                                                                                                                                                     "age", "bmi", "chol"), row.names = c(NA, -4L), class = "data.frame")))
+dg <- group_by(df, sex)
+cols <- names(dg)[-1]
+dots <- sapply(cols ,function(x) substitute(mean(x), list(x=as.name(x))))
+t2 = do.call(summarise, c(list(.data=dg), dots))
