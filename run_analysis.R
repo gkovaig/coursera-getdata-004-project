@@ -72,6 +72,8 @@ har.sel.mean.tidy = melt(har.sel.mean,
     variable.name = 'variableName',
     value.name = 'variableValue'
 )
+write.table(har.sel.mean.tidy, file = 'har_sel_mean_tidy.csv', append = FALSE, quote = TRUE,
+            sep = ',', row.names = FALSE)
 #
 # Test code
 # summary(har.sel[har.sel$subjectID == '9' & har.sel$activityID == 'STANDING',c(1:3)])
