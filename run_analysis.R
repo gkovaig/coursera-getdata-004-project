@@ -1,3 +1,6 @@
+# Project work for Johns Hopkins School of Public Health / Coursera
+# Getting and Cleaning Data - https://class.coursera.org/getdata-004/
+# Submitted by Raj Manickam on 2014-06-10
 sessionInfo()
 setwd('~/appdev/jhsph/getdata/project/coursera-getdata-004-project/UCI HAR Dataset/')
 library(data.table)
@@ -17,7 +20,7 @@ head(har.test[,c(1:5)])
 subject.test = read.table('test/subject_test.txt', header = FALSE, stringsAsFactors = FALSE, colClasses = c('character'))
 str(subject.test)
 table(subject.test$V1)
-
+#
 activity.test = read.table('test/y_test.txt', header = FALSE, stringsAsFactors = FALSE, colClasses = c('character'))
 table(activity.test$V1)
 #
@@ -28,6 +31,9 @@ setnames(subject.all, 'V1', 'subjectID')
 activity.all = rbind(activity.train, activity.test)
 setnames(activity.all, 'V1', 'activityID')
 har.all = cbind(har.all, subject.all, activity.all)
+#
+# Check for missing values
+sum(complete.cases(har.all)) # 10299 - no missing values
 #
 # Uses descriptive activity names to name the activities in the data set
 table(har.all$activityID)
@@ -57,7 +63,7 @@ har.sel = har.all[, c(selColumns, 562, 563)] # 10299 obs x 68 vars, including su
 tail(har.sel)
 #
 # Creates a second, independent tidy data set with the average of each variable for each activity and each subject
-# Need: subjectID, activityID, variableName, averageValue
+# Need: subjectID, activityID, variableName, variableValue
 # http://stackoverflow.com/questions/21295936/can-dplyr-summarise-over-several-variables-without-listing-each-one
 #
 library(dplyr)
@@ -75,5 +81,5 @@ har.sel.mean.tidy = melt(har.sel.mean,
 write.table(har.sel.mean.tidy, file = 'har_sel_mean_tidy.csv', append = FALSE, quote = TRUE,
             sep = ',', row.names = FALSE)
 #
-# Test code
+# Sample Test Code
 # summary(har.sel[har.sel$subjectID == '9' & har.sel$activityID == 'STANDING',c(1:3)])
